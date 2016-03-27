@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.pucminas.tcc.jonatas.wifip2pdbsync.adapters.DevicesAdapter;
@@ -20,11 +21,13 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
+    private ListView mList;
 
-    public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel) {
+    public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, ListView list) {
         super();
         this.mManager = manager;
         this.mChannel = channel;
+        mList = list;
     }
 
     @Override
@@ -43,25 +46,17 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 
             mManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
-
                 @Override
                 public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
                     DevicesAdapter adapter = new DevicesAdapter(wifiP2pDeviceList.getDeviceList());
-                    Collection<WifiP2pDevice> devices = wifiP2pDeviceList.getDeviceList();
-
-                    // TODO: notify list
+                    mList.setAdapter(adapter);
                 }
             });
 
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-
             Toast toast = Toast.makeText(WifiP2PDBSyncApplication.getInstance(),
                     "New peers has discovered!", Toast.LENGTH_SHORT);
             toast.show();
-
-        } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-
-            // TODO: Respond to this device's wifi state changing
 
         }
     }

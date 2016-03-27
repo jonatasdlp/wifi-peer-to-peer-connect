@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Wifi P2P DB Sync</string>
+    <string name="create_group">Criar Grupo</string>
+    <string name="refresh" />
+    <string name="connect">Conectar</string>
+    <string name="list_devices">Listar dispositivos</string>
 </resources>

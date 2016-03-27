@@ -42,8 +42,10 @@ public class DevicesAdapter extends ArrayAdapter<WifiP2pDevice> {
 
         if (mDevices.get(position) != null) {
             WifiP2pDevice device = mDevices.get(position);
+            String info = device.deviceName +  " - "  + device.toString();
+
             TextView text = (TextView) rowView.findViewById(R.id.device);
-            text.setText(device.deviceName +  " - "  + device.deviceAddress );
+            text.setText(info);
         }
 
         return rowView;
