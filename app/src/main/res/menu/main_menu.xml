@@ -4,16 +4,13 @@
 
     <item android:id="@+id/action_refresh"
         android:title="@string/refresh"
-        android:icon="@drawable/ic_refresh_white_24dp"
-        app:showAsAction="ifRoom" />
+        android:icon="@drawable/ic_refresh_white_24dp" />
 
     <item android:id="@+id/action_connect"
         android:title="@string/connect"
-        android:icon="@drawable/ic_phonelink_ring_white_24dp"
-        app:showAsAction="ifRoom" />
+        android:icon="@drawable/ic_phonelink_ring_white_24dp" />
 
     <item android:id="@+id/action_group"
         android:title="@string/create_group"
-        android:icon="@drawable/ic_add_white_24dp"
-        app:showAsAction="ifRoom" />
+        android:icon="@drawable/ic_add_white_24dp" />
 </menu>

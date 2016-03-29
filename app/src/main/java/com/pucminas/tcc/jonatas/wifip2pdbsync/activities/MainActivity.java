@@ -2,13 +2,14 @@ package com.pucminas.tcc.jonatas.wifip2pdbsync.activities;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.Parcel;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.Formatter;
@@ -18,8 +19,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.R;
+import com.pucminas.tcc.jonatas.wifip2pdbsync.adapters.DevicesAdapter;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WiFiDirectBroadcastReceiver;
+import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WifiP2PError;
+import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WifiP2pManagerUtils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import java.util.Collection;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -32,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     WifiP2pManager.Channel mChannel;
     BroadcastReceiver mReceiver;
     IntentFilter mIntentFilter;
+    WifiP2pManagerUtils mWifiP2pManagerUtils;
 
     @Bind(R.id.device_ip)
     TextView mDeviceIp;
@@ -45,9 +56,6 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.device_link)
     TextView mLink;
 
-    @Bind(R.id.device_freq)
-    TextView mDeviceFreq;
-
     @Bind(R.id.devices_list)
     ListView mList;
 
@@ -59,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
-        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, mList);
+        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel);
+        mWifiP2pManagerUtils = new WifiP2pManagerUtils(mManager, mChannel);
 
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -77,24 +86,24 @@ public class MainActivity extends AppCompatActivity {
         String link = String.valueOf(info.getLinkSpeed()) + "Mbps";
         mLink.setText(link);
 
-        String freq = String.valueOf(info.getFrequency()) + "MHz";
-        mDeviceFreq.setText(freq);
-
-
-        discoverPeers();
+        mWifiP2pManagerUtils.discoverPeers();
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
+
         registerReceiver(mReceiver, mIntentFilter);
+        EventBus.getDefault().register(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
         unregisterReceiver(mReceiver);
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
@@ -108,94 +117,36 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_group:
-                createGroup();
+               mWifiP2pManagerUtils.createGroup();
                 return true;
             case R.id.action_refresh:
-                discoverPeers();
+                mWifiP2pManagerUtils.discoverPeers();
                 return true;
             case R.id.action_connect:
-                connect();
+                mWifiP2pManagerUtils.connect();
             case R.id.action_list_devices:
-                listGroupDevices();
+                mWifiP2pManagerUtils.requestGroupInfo();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void requestGroupInfo() {
-        mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
-            @Override
-            public void onGroupInfoAvailable(WifiP2pGroup group) {
-                // TODO: show group devices
-            }
-        });
+    @Subscribe
+    public void onDevices(WifiP2pDeviceList devices) {
+        DevicesAdapter adapter = new DevicesAdapter(devices.getDeviceList());
+        mList.setAdapter(adapter);
     }
 
-    private void listGroupDevices() {
-        mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
-            @Override
-            public void onGroupInfoAvailable(WifiP2pGroup group) {
-                // TODO: list group.getClientList();
-            }
-        });
+    @Subscribe
+    public void onGroupInfo(WifiP2pGroup group) {
+        Intent activity = new Intent(MainActivity.this, GroupInfoActivity.class);
+        activity.putExtra("group", new Gson().toJson(group));
+        startActivity(activity);
     }
 
-    private void createGroup() {
-        mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "New group successful created!", Toast.LENGTH_SHORT);
-                toast.show();
-                getMenuInflater().inflate(R.menu.main_menu_group, mMenu);
-            }
-
-            @Override
-            public void onFailure(int reason) {
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "Fail!", Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
-    }
-
-    private void connect() {
-        WifiP2pConfig config = WifiP2pConfig.CREATOR.createFromParcel(Parcel.obtain());
-        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // TODO: show group info
-
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "Successful connected!", Toast.LENGTH_SHORT);
-                toast.show();
-            }
-
-            @Override
-            public void onFailure(int reason) {
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "Fail!", Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
-    }
-
-    private void discoverPeers() {
-        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "Cool, new peers!", Toast.LENGTH_SHORT);
-                toast.show();
-            }
-
-            @Override
-            public void onFailure(int reasonCode) {
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        String.valueOf(reasonCode), Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
+    @Subscribe
+    public void onError(WifiP2PError error) {
+        Toast.makeText(getApplicationContext(), error.getReason(), Toast.LENGTH_LONG).show();
     }
 }

@@ -85,21 +85,6 @@
        </LinearLayout>
 
 
-       <LinearLayout
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal">
-
-           <TextView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:text="FREQ: "/>
-
-            <TextView
-                android:id="@+id/device_freq"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-       </LinearLayout>
    </LinearLayout>
 
     <ListView
