@@ -44,38 +44,6 @@
            <TextView
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
-               android:text="Link: "/>
-
-            <TextView
-                android:id="@+id/device_link"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-       </LinearLayout>
-
-       <LinearLayout
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal">
-
-           <TextView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:text="BSSID: "/>
-
-           <TextView
-               android:id="@+id/device_bss"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content" />
-       </LinearLayout>
-
-       <LinearLayout
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal">
-
-           <TextView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
                android:text="MAC: "/>
 
             <TextView
@@ -83,9 +51,31 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
        </LinearLayout>
-
-
    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/group_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="20dp"
+        android:padding="16dp"
+        android:background="#d4d4d4"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/group_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/show_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Group"
+            android:layout_gravity="right" />
+    </LinearLayout>
 
     <ListView
         android:id="@+id/devices_list"

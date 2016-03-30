@@ -6,15 +6,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.support.annotation.MainThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.Formatter;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,10 +30,9 @@ import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WifiP2pManagerUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import java.util.Collection;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,17 +47,16 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.device_ip)
     TextView mDeviceIp;
 
-    @Bind(R.id.device_bss)
-    TextView mDeviceBss;
-
     @Bind(R.id.device_mac)
     TextView mDeviceMac;
 
-    @Bind(R.id.device_link)
-    TextView mLink;
+    @Bind(R.id.group_info)
+    TextView mGroupInfo;
 
     @Bind(R.id.devices_list)
     ListView mList;
+
+    private WifiP2pGroup mCurrentGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,10 +80,6 @@ public class MainActivity extends AppCompatActivity {
 
         mDeviceMac.setText(String.valueOf(info.getMacAddress()));
         mDeviceIp.setText(Formatter.formatIpAddress(info.getIpAddress()));
-        mDeviceBss.setText(String.valueOf(info.getBSSID()));
-
-        String link = String.valueOf(info.getLinkSpeed()) + "Mbps";
-        mLink.setText(link);
 
         mWifiP2pManagerUtils.discoverPeers();
     }
@@ -124,8 +119,11 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_connect:
                 mWifiP2pManagerUtils.connect();
-            case R.id.action_list_devices:
+            case R.id.action_group_info:
                 mWifiP2pManagerUtils.requestGroupInfo();
+                return true;
+            case R.id.action_list_devices:
+                gotToGroupScreen();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -140,13 +138,31 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe
     public void onGroupInfo(WifiP2pGroup group) {
-        Intent activity = new Intent(MainActivity.this, GroupInfoActivity.class);
-        activity.putExtra("group", new Gson().toJson(group));
-        startActivity(activity);
+        mCurrentGroup = group;
+        updateView(group);
     }
 
     @Subscribe
     public void onError(WifiP2PError error) {
         Toast.makeText(getApplicationContext(), error.getReason(), Toast.LENGTH_LONG).show();
+    }
+
+    @Subscribe
+    public void onMessage(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    @OnClick(R.id.show_group)
+    public void gotToGroupScreen() {
+        if (mCurrentGroup != null) {
+            Intent activity = new Intent(MainActivity.this, GroupInfoActivity.class);
+            activity.putExtra("group", new Gson().toJson(mCurrentGroup));
+            startActivity(activity);
+        }
+    }
+
+    private void updateView(WifiP2pGroup group) {
+        mGroupInfo.setVisibility(View.VISIBLE);
+        mGroupInfo.setText(group.toString());
     }
 }

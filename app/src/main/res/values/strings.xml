@@ -4,4 +4,5 @@
     <string name="refresh">Atualizar</string>>
     <string name="connect">Conectar</string>
     <string name="list_devices">Listar dispositivos</string>
+    <string name="info_group">Informações do Grupo</string>
 </resources>

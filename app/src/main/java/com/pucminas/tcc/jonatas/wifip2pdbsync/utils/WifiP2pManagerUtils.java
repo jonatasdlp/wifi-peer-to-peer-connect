@@ -24,7 +24,11 @@ public class WifiP2pManagerUtils {
         mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
             @Override
             public void onGroupInfoAvailable(WifiP2pGroup group) {
-                EventBus.getDefault().post(group);
+                if (group != null) {
+                    EventBus.getDefault().post(group);
+                } else {
+                    EventBus.getDefault().post("No group found!");
+                }
             }
         });
     }
@@ -45,6 +49,7 @@ public class WifiP2pManagerUtils {
 
     public void connect() {
         WifiP2pConfig config = WifiP2pConfig.CREATOR.createFromParcel(Parcel.obtain());
+
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -62,7 +67,7 @@ public class WifiP2pManagerUtils {
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                EventBus.getDefault().post("News peers has discovered!");
+                EventBus.getDefault().post("Updating peers list...");
             }
 
             @Override

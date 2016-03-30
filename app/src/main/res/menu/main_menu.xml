@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/action_refresh"
         android:title="@string/refresh"
@@ -13,4 +12,13 @@
     <item android:id="@+id/action_group"
         android:title="@string/create_group"
         android:icon="@drawable/ic_add_white_24dp" />
+
+    <item android:id="@+id/action_group_info"
+        android:title="@string/info_group"
+        android:icon="@drawable/ic_info_white_24dp" />
+
+    <item android:id="@+id/action_list_devices"
+        android:title="@string/list_devices"
+        android:icon="@drawable/ic_list_white_24dp" />
+
 </menu>
