@@ -1,2 +1,2 @@
-# Wifi P2P Database Sync
-Wi-Fi P2P Application example with a simple database synchronization feature
+# Wifi P2P Connect
+Wi-Fi P2P Application.
