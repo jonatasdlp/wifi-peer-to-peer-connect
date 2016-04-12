@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
         if (mCurrentGroup != null) {
             updateView(group);
         } else {
-            removeGroupView(group);
+            removeGroupView(group co);
         }
     }
 
