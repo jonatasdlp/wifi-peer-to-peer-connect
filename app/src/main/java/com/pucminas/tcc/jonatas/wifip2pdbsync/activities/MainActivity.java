@@ -11,7 +11,6 @@ import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.text.format.Formatter;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -159,12 +158,7 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe
     public void onGroupInfo(WifiP2pGroup group) {
         mCurrentGroup = group;
-
-        if (mCurrentGroup != null) {
-            updateView(group);
-        } else {
-            removeGroupView(group co);
-        }
+        updateView(group);
     }
 
     @Subscribe
@@ -182,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         if (mCurrentGroup != null) {
             final DevicesAdapter adapter = new DevicesAdapter(mCurrentGroup.getClientList());
             mList.setAdapter(adapter);
-            mList.notify();
+            adapter.notifyDataSetChanged();
         }
     }
 
