@@ -1,11 +1,16 @@
 package com.pucminas.tcc.jonatas.wifip2pdbsync.utils;
 
+import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Parcel;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.net.InetAddress;
 
 /**
  * Created by jonatas on 29/03/16.
@@ -33,6 +38,21 @@ public class WifiP2pManagerUtils {
         });
     }
 
+    public void requestConnectionInfo() {
+        mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
+            @Override
+            public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                InetAddress groupOwnerAddress = info.groupOwnerAddress;
+
+                if (info.groupFormed && info.isGroupOwner) {
+                    EventBus.getDefault().post(groupOwnerAddress.toString());
+                } else if (info.groupFormed) {
+                    EventBus.getDefault().post("Group Formed! Check a devices list...");
+                }
+            }
+        });
+    }
+
     public void createGroup() {
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
@@ -47,13 +67,16 @@ public class WifiP2pManagerUtils {
         });
     }
 
-    public void connect() {
-        WifiP2pConfig config = WifiP2pConfig.CREATOR.createFromParcel(Parcel.obtain());
+    public void connect(final WifiP2pDevice device, int intent) {
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        config.groupOwnerIntent = intent;
+        config.wps.setup = WpsInfo.PBC;
 
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                EventBus.getDefault().post("Connected!");
+                EventBus.getDefault().post(device.deviceName + " connected!");
             }
 
             @Override

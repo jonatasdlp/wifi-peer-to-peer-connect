@@ -29,6 +29,10 @@ public class DevicesAdapter extends ArrayAdapter<WifiP2pDevice> {
         mDevices = new LinkedList<>(devices);
     }
 
+    public List<WifiP2pDevice> getList() {
+        return  mDevices;
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View rowView = convertView;

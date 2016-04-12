@@ -2,25 +2,27 @@ package com.pucminas.tcc.jonatas.wifip2pdbsync.activities;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.support.annotation.MainThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.text.format.Formatter;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.R;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.adapters.DevicesAdapter;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WiFiDirectBroadcastReceiver;
@@ -53,10 +55,18 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.group_info)
     TextView mGroupInfo;
 
+    @Bind(R.id.group_container)
+    LinearLayout mContainer;
+
     @Bind(R.id.devices_list)
     ListView mList;
 
+    @Bind(R.id.seek_bar)
+    SeekBar mSeekBar;
+
     private WifiP2pGroup mCurrentGroup;
+    private int mGroupOwnerIntent = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +92,9 @@ public class MainActivity extends AppCompatActivity {
         mDeviceIp.setText(Formatter.formatIpAddress(info.getIpAddress()));
 
         mWifiP2pManagerUtils.discoverPeers();
-    }
 
+        setupSeekBar();
+    }
 
     @Override
     protected void onResume() {
@@ -117,10 +128,11 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_refresh:
                 mWifiP2pManagerUtils.discoverPeers();
                 return true;
-            case R.id.action_connect:
-                mWifiP2pManagerUtils.connect();
             case R.id.action_group_info:
                 mWifiP2pManagerUtils.requestGroupInfo();
+                return true;
+            case R.id.action_connect:
+                mWifiP2pManagerUtils.requestConnectionInfo();
                 return true;
             case R.id.action_list_devices:
                 gotToGroupScreen();
@@ -131,15 +143,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe
-    public void onDevices(WifiP2pDeviceList devices) {
-        DevicesAdapter adapter = new DevicesAdapter(devices.getDeviceList());
+    public void onDevices(final WifiP2pDeviceList devices) {
+        final DevicesAdapter adapter = new DevicesAdapter(devices.getDeviceList());
         mList.setAdapter(adapter);
+        mList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                WifiP2pDevice device= adapter.getList().get(position);
+                mWifiP2pManagerUtils.connect(device, mGroupOwnerIntent);
+                return false;
+            }
+        });
     }
 
     @Subscribe
     public void onGroupInfo(WifiP2pGroup group) {
         mCurrentGroup = group;
-        updateView(group);
+
+        if (mCurrentGroup != null) {
+            updateView(group);
+        } else {
+            removeGroupView(group);
+        }
     }
 
     @Subscribe
@@ -155,14 +180,44 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.show_group)
     public void gotToGroupScreen() {
         if (mCurrentGroup != null) {
-            Intent activity = new Intent(MainActivity.this, GroupInfoActivity.class);
-            activity.putExtra("group", new Gson().toJson(mCurrentGroup));
-            startActivity(activity);
+            final DevicesAdapter adapter = new DevicesAdapter(mCurrentGroup.getClientList());
+            mList.setAdapter(adapter);
+            mList.notify();
         }
     }
 
     private void updateView(WifiP2pGroup group) {
+        mContainer.setVisibility(View.VISIBLE);
         mGroupInfo.setVisibility(View.VISIBLE);
         mGroupInfo.setText(group.toString());
+    }
+
+    private void removeGroupView(WifiP2pGroup group) {
+        mContainer.setVisibility(View.GONE);
+        mGroupInfo.setVisibility(View.GONE);
+    }
+
+    private void setupSeekBar() {
+        final int step = 1;
+        final int min = 0;
+        int max = 15;
+
+        mSeekBar.setMax((max - min) / step);
+
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mGroupOwnerIntent = min + (progress * step);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
     }
 }
