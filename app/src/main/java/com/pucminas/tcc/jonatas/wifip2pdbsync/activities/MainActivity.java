@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver mReceiver;
     IntentFilter mIntentFilter;
     WifiP2pManagerUtils mWifiP2pManagerUtils;
+    WifiP2pManagerUtils mWifiP2pManagerUtilsAux;
 
     @Bind(R.id.device_ip)
     TextView mDeviceIp;
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
         mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel);
-        mWifiP2pManagerUtils = new WifiP2pManagerUtils(mManager, mChannel);
+        mWifiP2pManagerUtils = new WifiP2pManagerUtils(this, mManager, mChannel);
 
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -169,6 +170,11 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe
     public void onMessage(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    @Subscribe
+    public void onWifiP2pManagerUtils(WifiP2pManagerUtils manager) {
+        mWifiP2pManagerUtilsAux = manager;
     }
 
     @OnClick(R.id.show_group)

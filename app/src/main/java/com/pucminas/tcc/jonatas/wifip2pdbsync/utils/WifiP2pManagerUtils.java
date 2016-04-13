@@ -1,12 +1,12 @@
 package com.pucminas.tcc.jonatas.wifip2pdbsync.utils;
 
+import android.content.Context;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.Parcel;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -19,8 +19,16 @@ public class WifiP2pManagerUtils {
 
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
+    private Context mContext;
 
-    public WifiP2pManagerUtils(WifiP2pManager manager, WifiP2pManager.Channel channel) {
+    public WifiP2pManagerUtils(Context context, WifiP2pManager manager) {
+        mContext = context;
+        mManager = manager;
+        mChannel = channelInstance();
+    }
+
+    public WifiP2pManagerUtils(Context context, WifiP2pManager manager, WifiP2pManager.Channel channel) {
+        mContext = context;
         mManager = manager;
         mChannel = channel;
     }
@@ -42,10 +50,8 @@ public class WifiP2pManagerUtils {
         mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
             @Override
             public void onConnectionInfoAvailable(WifiP2pInfo info) {
-                InetAddress groupOwnerAddress = info.groupOwnerAddress;
-
                 if (info.groupFormed && info.isGroupOwner) {
-                    EventBus.getDefault().post(groupOwnerAddress.toString());
+                    EventBus.getDefault().post(new WifiP2pManagerUtils(mContext, mManager));
                 } else if (info.groupFormed) {
                     EventBus.getDefault().post("Group Formed! Check a devices list...");
                 }
@@ -98,5 +104,13 @@ public class WifiP2pManagerUtils {
                 EventBus.getDefault().post(new WifiP2PError(reasonCode));
             }
         });
+    }
+
+    public WifiP2pManager.Channel getChannel() {
+        return mChannel;
+    }
+
+    private WifiP2pManager.Channel channelInstance() {
+        return mManager.initialize(mContext, mContext.getMainLooper(), null);
     }
 }
