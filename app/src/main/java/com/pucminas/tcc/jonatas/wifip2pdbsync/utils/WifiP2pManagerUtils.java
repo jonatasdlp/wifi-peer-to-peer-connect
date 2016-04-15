@@ -20,11 +20,13 @@ public class WifiP2pManagerUtils {
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
     private Context mContext;
+    private boolean mPrimary = true;
 
     public WifiP2pManagerUtils(Context context, WifiP2pManager manager) {
         mContext = context;
         mManager = manager;
         mChannel = channelInstance();
+        mPrimary = false;
     }
 
     public WifiP2pManagerUtils(Context context, WifiP2pManager manager, WifiP2pManager.Channel channel) {
@@ -83,6 +85,7 @@ public class WifiP2pManagerUtils {
             @Override
             public void onSuccess() {
                 EventBus.getDefault().post(device.deviceName + " connected!");
+                EventBus.getDefault().post(new IntentResult(IntentResult.RESULT_REFRESH_DEVICE, "Refresh!"));
             }
 
             @Override
@@ -108,6 +111,10 @@ public class WifiP2pManagerUtils {
 
     public WifiP2pManager.Channel getChannel() {
         return mChannel;
+    }
+
+    public boolean isPrimary() {
+        return mPrimary;
     }
 
     private WifiP2pManager.Channel channelInstance() {

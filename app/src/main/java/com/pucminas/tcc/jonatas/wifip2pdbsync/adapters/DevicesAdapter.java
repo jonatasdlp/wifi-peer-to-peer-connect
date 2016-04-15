@@ -50,6 +50,9 @@ public class DevicesAdapter extends ArrayAdapter<WifiP2pDevice> {
 
             TextView text = (TextView) rowView.findViewById(R.id.device);
             text.setText(info);
+
+            TextView owner = (TextView) rowView.findViewById(R.id.is_owner);
+            owner.setText(String.valueOf(device.isGroupOwner()));
         }
 
         return rowView;

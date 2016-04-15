@@ -3,11 +3,13 @@ package com.pucminas.tcc.jonatas.wifip2pdbsync.activities;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,6 +26,7 @@ import android.widget.Toast;
 
 import com.pucminas.tcc.jonatas.wifip2pdbsync.R;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.adapters.DevicesAdapter;
+import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.IntentResult;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WiFiDirectBroadcastReceiver;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WifiP2PError;
 import com.pucminas.tcc.jonatas.wifip2pdbsync.utils.WifiP2pManagerUtils;
@@ -57,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Bind(R.id.group_container)
     LinearLayout mContainer;
+
+    @Bind(R.id.group_info_aux)
+    TextView mGroupInfoAux;
+
+    @Bind(R.id.group_container_aux)
+    LinearLayout mContainerAux;
 
     @Bind(R.id.devices_list)
     ListView mList;
@@ -150,16 +159,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 WifiP2pDevice device= adapter.getList().get(position);
+
                 mWifiP2pManagerUtils.connect(device, mGroupOwnerIntent);
+
                 return false;
             }
         });
+        adapter.notifyDataSetChanged();
     }
 
     @Subscribe
     public void onGroupInfo(WifiP2pGroup group) {
         mCurrentGroup = group;
-        updateView(group);
+
+        updateViewPrimary(group);
+        showGroupList();
     }
 
     @Subscribe
@@ -177,8 +191,31 @@ public class MainActivity extends AppCompatActivity {
         mWifiP2pManagerUtilsAux = manager;
     }
 
+    @Subscribe
+    public void onIntentResult(IntentResult intentResult) {
+        if (intentResult.getResult() == IntentResult.RESULT_REFRESH_DEVICE) {
+
+            WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            WifiInfo info = manager.getConnectionInfo();
+
+
+
+            mDeviceMac.setText(String.valueOf(info.getMacAddress()));
+            mDeviceIp.setText(Formatter.formatIpAddress(info.getIpAddress()));
+        }
+    }
+
     @OnClick(R.id.show_group)
     public void gotToGroupScreen() {
+        mWifiP2pManagerUtils.requestGroupInfo();
+    }
+
+    @OnClick(R.id.show_group_aux)
+    public void gotToGroupAuxScreen() {
+        mWifiP2pManagerUtilsAux.requestGroupInfo();
+    }
+
+    private void showGroupList() {
         if (mCurrentGroup != null) {
             final DevicesAdapter adapter = new DevicesAdapter(mCurrentGroup.getClientList());
             mList.setAdapter(adapter);
@@ -186,10 +223,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateView(WifiP2pGroup group) {
+    private void updateViewPrimary(WifiP2pGroup group) {
         mContainer.setVisibility(View.VISIBLE);
         mGroupInfo.setVisibility(View.VISIBLE);
         mGroupInfo.setText(group.toString());
+    }
+
+    private void updateViewSecondary(WifiP2pGroup group) {
+        mContainerAux.setVisibility(View.VISIBLE);
+        mGroupInfoAux.setVisibility(View.VISIBLE);
+        mGroupInfoAux.setText(group.toString());
     }
 
     private void removeGroupView(WifiP2pGroup group) {
