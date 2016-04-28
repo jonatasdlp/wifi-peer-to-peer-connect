@@ -5,4 +5,5 @@
     <string name="connect">Informações de Conexão</string>
     <string name="list_devices">Listar dispositivos</string>
     <string name="info_group">Informações do Grupo</string>
+    <string name="fechar_todas_as_conex_es">Fechar Todas as Conexões</string>
 </resources>

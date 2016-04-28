@@ -109,6 +109,34 @@ public class WifiP2pManagerUtils {
         });
     }
 
+    public void closeAllConnections() {
+        mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                EventBus.getDefault().post("Encerrando conexões...");
+            }
+
+            @Override
+            public void onFailure(int i) {
+                EventBus.getDefault().post(new WifiP2PError(i));
+            }
+        });
+    }
+
+    public void removeAllGroups() {
+        mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                EventBus.getDefault().post("Removendo grupo...");
+            }
+
+            @Override
+            public void onFailure(int i) {
+                EventBus.getDefault().post(new WifiP2PError(i));
+            }
+        });
+    }
+
     public WifiP2pManager.Channel getChannel() {
         return mChannel;
     }

@@ -21,4 +21,8 @@
         android:title="@string/list_devices"
         android:icon="@drawable/ic_list_white_24dp" />
 
+    <item android:id="@+id/action_cancel"
+        android:title="@string/fechar_todas_as_conex_es"
+        android:icon="@drawable/ic_list_white_24dp" />
+
 </menu>

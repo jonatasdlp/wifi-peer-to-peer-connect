@@ -38,7 +38,8 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity {
+public class
+MainActivity extends AppCompatActivity {
 
     private Menu mMenu;
 
@@ -47,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver mReceiver;
     IntentFilter mIntentFilter;
     WifiP2pManagerUtils mWifiP2pManagerUtils;
-    WifiP2pManagerUtils mWifiP2pManagerUtilsAux;
 
     @Bind(R.id.device_ip)
     TextView mDeviceIp;
@@ -60,12 +60,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Bind(R.id.group_container)
     LinearLayout mContainer;
-
-    @Bind(R.id.group_info_aux)
-    TextView mGroupInfoAux;
-
-    @Bind(R.id.group_container_aux)
-    LinearLayout mContainerAux;
 
     @Bind(R.id.devices_list)
     ListView mList;
@@ -146,6 +140,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_list_devices:
                 gotToGroupScreen();
                 return true;
+            case R.id.action_cancel:
+                removeAllConnectionsAndGroups();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -172,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
     public void onGroupInfo(WifiP2pGroup group) {
         mCurrentGroup = group;
 
-        updateViewPrimary(group);
+        updateView(group);
         showGroupList();
     }
 
@@ -184,11 +181,6 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe
     public void onMessage(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-    }
-
-    @Subscribe
-    public void onWifiP2pManagerUtils(WifiP2pManagerUtils manager) {
-        mWifiP2pManagerUtilsAux = manager;
     }
 
     @Subscribe
@@ -210,11 +202,6 @@ public class MainActivity extends AppCompatActivity {
         mWifiP2pManagerUtils.requestGroupInfo();
     }
 
-    @OnClick(R.id.show_group_aux)
-    public void gotToGroupAuxScreen() {
-        mWifiP2pManagerUtilsAux.requestGroupInfo();
-    }
-
     private void showGroupList() {
         if (mCurrentGroup != null) {
             final DevicesAdapter adapter = new DevicesAdapter(mCurrentGroup.getClientList());
@@ -223,21 +210,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateViewPrimary(WifiP2pGroup group) {
+    private void removeAllConnectionsAndGroups() {
+        mWifiP2pManagerUtils.closeAllConnections();
+        mWifiP2pManagerUtils.removeAllGroups();
+
+        removeGroupView();
+    }
+
+    private void updateView(WifiP2pGroup group) {
         mContainer.setVisibility(View.VISIBLE);
         mGroupInfo.setVisibility(View.VISIBLE);
         mGroupInfo.setText(group.toString());
     }
 
-    private void updateViewSecondary(WifiP2pGroup group) {
-        mContainerAux.setVisibility(View.VISIBLE);
-        mGroupInfoAux.setVisibility(View.VISIBLE);
-        mGroupInfoAux.setText(group.toString());
-    }
-
-    private void removeGroupView(WifiP2pGroup group) {
+    private void removeGroupView() {
         mContainer.setVisibility(View.GONE);
         mGroupInfo.setVisibility(View.GONE);
+        mGroupInfo.setText("");
     }
 
     private void setupSeekBar() {
